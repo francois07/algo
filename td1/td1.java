@@ -13,7 +13,7 @@ public class Td1 {
     // I(d,f,fp): T[d:f] premier plus long sous tableau constant du fp-prefixe de T
     static int[] pplstc(final int[] T) {
         int d = 0, f = 1;
-        int dp = 0, fp = 1;
+        int dp = d, fp = f;
         while (fp < T.length) {
             if (T[fp] == T[fp - 1]) {
                 fp++;
@@ -86,10 +86,10 @@ public class Td1 {
 
     // INIT: d = f = s = dp = fp = sp = 0
     // TERMINATION: fp >= T.length
-    // I(d,f): sum(T[d...f]) > Toute sum(T[i...j]) tel que i, j dans [0:d]
+    // I(d,f): sum(T[d:f]) > Toute sum(T[i:j]) tel que i, j dans [0:d]
     static int[] pstsm(int T[]) {
-        int d = 0, f = 0, s = 0;
-        int dp = 0, fp = 0, sp = T[0];
+        int d = 0, f = 0, s = T[0];
+        int dp = d, fp = f, sp = s;
         while (fp < T.length) {
             if (sp < 0) {
                 dp = fp;
