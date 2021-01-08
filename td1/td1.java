@@ -27,6 +27,7 @@ public class Td1 {
     public static int segmenter(int T[], int i, int j) {
         int k = i;
         int jp = k + 1;
+        // I(i,j,k) : T[i:k] <= k < T[k+1:j]
         while (jp < j) {
             if (T[jp] > T[k]) {
                 jp++;
@@ -41,21 +42,18 @@ public class Td1 {
     }
 
     public static void quicksort(int T[], int i, int j) {
-        if (j - i >= 2) {
+        if (i < j) {
             int pivot = segmenter(T, i, j);
-            quicksort(T, i, pivot);
+            quicksort(T, i, pivot - 1);
             quicksort(T, pivot + 1, j);
         }
     }
 
-    /*
-     * I(k, k_a, k_b) : A inter B = C[0:k] union (A[k_a : n_a] inter B[k_b : n_b])
-     */
     public static int[] inter(int A[], int B[]) {
         int n_a = A.length, n_b = B.length;
         int[] C = new int[Math.min(n_a, n_b)];
         int k_a = 0, k_b = 0, k = 0;
-        while (k_a < n_a && k_b < n_b) {
+        while (k_a < n_a && k_b < n_b) { // I(k, k_a, k_b) : A inter B = C[0:k] union (A[k_a : n_a] inter B[k_b : n_b])
             if (A[k_a] == B[k_b]) {
                 C[k] = A[k_b];
                 k++;
