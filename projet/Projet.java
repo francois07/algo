@@ -24,7 +24,7 @@ public class Projet {
       // génération d'un ensemble d'objets aléatoires en valeurs et tailles
       int n = random.nextInt(nsup + 1); // nombre d'objets au hasard dans [0:nsup+1]
       int c = random.nextInt(csup + 1), // taille du sac aléatoire dans [0:csup+1]
-          tsup = c / 10; // les objets seront de taille aléatoire dans [1:tsup+1]
+          tsup = 1 + (c / 10); // les objets seront de taille aléatoire dans [1:tsup+1]
       // Un ensemble de n objets aléatoires, valeurs dans [0:vsup+1] et tailles dans
       // [1:tsup+1]
       objet[] objets = ObjetsAleatoires(n, vsup, tsup);
@@ -120,8 +120,8 @@ public class Projet {
       if (T[jp] > T[k]) {
         jp++;
       } else {
-        permuter(T, jp, k + 1);
         permuter(T, k + 1, k);
+        permuter(T, jp, k + 1);
         k++;
         jp++;
       }
@@ -243,8 +243,8 @@ public class Projet {
       if (Objets[jp].v <= Objets[k].v) {
         jp++;
       } else {
-        permuter(Objets, k + 1, k);
         permuter(Objets, jp, k + 1);
+        permuter(Objets, k + 1, k);
         k++;
         jp++;
       }
@@ -261,8 +261,8 @@ public class Projet {
       if (Objets[jp].d <= Objets[k].d) {
         jp++;
       } else {
-        permuter(Objets, k + 1, k);
         permuter(Objets, jp, k + 1);
+        permuter(Objets, k + 1, k);
         k++;
         jp++;
       }

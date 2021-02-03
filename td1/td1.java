@@ -1,7 +1,7 @@
 import java.util.Arrays;
 import java.lang.Math;
 
-public class Td1 {
+public class td1 {
     private static void permute(int[] T, int i, int j) {
         int tmp = T[i];
         T[i] = T[j];
