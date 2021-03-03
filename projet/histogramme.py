@@ -1,5 +1,5 @@
 # -*- coding: latin-1 -*-
-# 
+#
 """ 
 Ouvrir un terminal, et se placer dans le répertoire qui contient
 vos fichiers valeursSGD.csv    et    valeursSGV.csv générés par votre programme.
@@ -12,26 +12,24 @@ et "gloutons par densité".
 import csv
 import matplotlib.pyplot as plt
 from numpy import median, mean
-def histogramme(fileName) : # fileName = "valeursSGD" ou "valeursSGV"
-	VSG = [] # valeurs des sacs "gloutons
-	with open(fileName + ".csv") as csvfile:
-		reader = csv.reader(csvfile)
-		for row in reader:
-			VSG.append(int(row[0]))
-		h = plt.hist(VSG,bins=100)
-		plt.savefig(fileName+".png")
-		plt.close()
-		return median(VSG), mean(VSG)
-	csvfile.close
 
+
+def histogramme(fileName):  # fileName = "valeursSGD" ou "valeursSGV"
+    VSG = []  # valeurs des sacs "gloutons
+    with open(fileName + ".csv") as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            VSG.append(int(row[0]))
+        h = plt.hist(VSG, bins=100)
+        plt.savefig(fileName+".png")
+        plt.close()
+        print("médiane(" + fileName + ") = " + str(int(median(VSG))))
+        print("moyenne(" + fileName + ") = " + str(int(mean(VSG))))
+    csvfile.close
+
+
+print("")
 histogramme("valeursSGD")
+print("")
 histogramme("valeursSGV")
-
-
-
-
-
-
-
-
-
+print("")

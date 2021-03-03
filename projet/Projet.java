@@ -27,7 +27,7 @@ public class Projet {
           tsup = 1 + (c / 10); // les objets seront de taille aléatoire dans [1:tsup+1]
       // Un ensemble de n objets aléatoires, valeurs dans [0:vsup+1] et tailles dans
       // [1:tsup+1]
-      objet[] objets = ObjetsAleatoires(n, vsup, tsup);
+      Objet[] objets = ObjetsAleatoires(n, vsup, tsup);
       // remarque : pas d'objet de taille 0. Ils conduiraient à une densité v/t
       // infinie.
       boolean[] sgpv = sacGloutonParValeurs(objets, c); // sac de contenance c, "glouton par valeurs"
@@ -61,16 +61,17 @@ public class Projet {
   // Exercice 1 : CALCUL DE LA MEDIANE
   static int qselRecursif(int p, int[] T, int i, int j) {
     int m = j - i;
-    if (m == 1) {
+    if (m == 1) { // Si m =1, p est nécéssairement égal à 0. La p-ème valeur de T[i:j] est T[i]
       return T[i];
-    } else {
-      int k = segmenter(T, i, j);
-      if (p < k) {
-        return qselRecursif(p, T, i, k);
-      } else if (p == k) {
+    } else { // Si m > 1, p est nécéssairement dans l'intervalle [0:m]
+      int k = segmenter(T, i, j); // On cherche une partition de T[i:j] pour comparer p+i à son résultat
+      int ppi = p + i;
+      if (i <= ppi && ppi < k) { // Si i <= p+i < k la p-ème valeur de T est la p-ème valeur de T[i:k]
+        return qselRecursif(ppi - i, T, i, k);
+      } else if (k <= ppi && ppi < k + 1) { // Si p+i == k la p-ème valeur de T est T[k]
         return T[k];
-      } else {
-        return qselRecursif(p, T, k + 1, j);
+      } else { // Si k <= p+i < j la p-ème valeur de T est la (p+i-(k+1))-ème valeur de T[i:k]
+        return qselRecursif(ppi - (k + 1), T, k + 1, j);
       }
     }
   }
@@ -115,6 +116,10 @@ public class Projet {
   }
 
   static int segmenter(int[] T, int i, int j) {
+    // Calcule une permutation des valeurs de T[i:j] qui vérifie
+    // I(k, i, j): T[i:k] <= T[k:k+1] <= T[k+1:j], et retourne l'indice k
+    int h = hasard(i, j);
+    permuter(T, i, h);
     int k = i, jp = k + 1;
     while (jp < j) {
       if (T[jp] > T[k]) {
@@ -130,8 +135,7 @@ public class Projet {
   }
 
   static int hasard(int i, int j) {
-    Random r = new Random();
-    return i + r.nextInt(j - i);
+    return i + random.nextInt(j - i);
   }
 
   static void permuter(int[] T, int i, int j) {
@@ -143,11 +147,11 @@ public class Projet {
   // EXERCICE 2 :
   // Un objet est défini par son numéro i, sa valeur v, sa taille t, sa densité
   // v/t
-  static class objet {
+  static class Objet {
     int i, v, t;
     float d;
 
-    objet(int i, int v, int t, float d) {
+    Objet(int i, int v, int t, float d) {
       this.i = i;
       this.v = v;
       this.t = t;
@@ -157,94 +161,100 @@ public class Projet {
 
   // Un ensemble de n objets aléatoires à valeurs et tailles dans [0:vsup+1] et
   // [1:tsup+1]
-  static objet[] ObjetsAleatoires(int n, int vsup, int tsup) {
-    objet[] E = new objet[n]; // ensemble de n objets
+  static Objet[] ObjetsAleatoires(int n, int vsup, int tsup) {
+    Objet[] E = new Objet[n]; // ensemble de n objets
     for (int k = 0; k < n; k++) {
-      E[k] = new objet(0, 0, 0, 0);
-      E[k].i = k; // On donne le numéro à l'objet.
-      E[k].v = random.nextInt(vsup + 1); // On donne une valeur aléatoire v dans [0:vsup+1]
-      E[k].t = 1 + random.nextInt(tsup + 1); // On donne une taille aléatoire t dans [1:tsup+1]
-      E[k].d = E[k].v / E[k].t; // On calcule la densité aléatoire par rapport aux t et v précédents
+      int i = k; // On assigne indice à la variable
+      int v = random.nextInt(vsup + 1); // On assigne à v une valeur aléatoire dans [0:vsup+1]
+      int t = 1 + random.nextInt(tsup + 1); // On assigne à t une taille aléatoire dans [1:tsup+1]
+      float d = v / t; // On calcule la densité aléatoire par rapport aux t et v précédents
+      E[k] = new Objet(i, v, t, d); // On initialise l'objet aléatoire avec les propriétés précédentes
     }
     return E;
   }
 
-  static int valeurDuSac(boolean[] sac, objet[] Objets) {
-    int n = sac.length;
-    objet[] ooi = new objet[n]; // objets dans l'ordre initial :
+  static int valeurDuSac(boolean[] sac, Objet[] objets) {
     int vds = 0; // valeur du sac
-    for (objet obj : Objets) {
-      vds += obj.v;
+
+    // Pour chaque objet dans le tableau objets, si ce dernier rentre dans le sac,
+    // c'est-à-dire que la valeur de sac à son indice initial est TRUE, alors on
+    // ajoute sa valeur à la valeur du sac
+    for (Objet obj : objets) {
+      if (sac[obj.i]) {
+        vds += obj.v;
+      }
     }
     return vds;
   }
 
-  static boolean[] sac(objet[] Objets, int c) {
+  static boolean[] sac(Objet[] objets, int c) {
     // Objets triés par valeurs décroissantes ou par densités décroissantes.
     // Retourne un sac glouton selon le critère du tri.
-    int n = Objets.length, r = c;
-    boolean[] sac = new boolean[n];
-    for (int i = 0; i < n; i++) {
-      int taille = Objets[i].t;
+    int n = objets.length, r = c;
+    boolean[] sac = new boolean[n]; // Sac est un tableau parallèle au tableau objets d'ordre initial tel que si
+                                    // T[i] rentre dans le sac alors sac[i] = true
+
+    // Pour chaque objet, si sa taille est inferieur à l'espace restant, on assigne
+    // TRUE à l'indice initial de ce dernier dans le tableau sac
+    for (Objet obj : objets) {
+      int taille = obj.t;
       if (taille <= r) {
-        sac[i] = true;
+        sac[obj.i] = true;
         r -= taille;
-      } else {
-        sac[i] = false;
       }
     }
     return sac;
   }
 
-  static boolean[] sacGloutonParValeurs(objet[] Objets, int c) {
-    qspvd(Objets); // tri quicksort des objets par valeurs décroissantes
-    return sac(Objets, c); // sac glouton par valeurs.
+  static boolean[] sacGloutonParValeurs(Objet[] objets, int c) {
+    qspvd(objets); // tri quicksort des objets par valeurs décroissantes
+    return sac(objets, c); // sac glouton par valeurs.
   }
 
-  static boolean[] sacGloutonParDensites(objet[] Objets, int c) {
-    qspdd(Objets); // tri quicksort des objets par densités décroissantes
-    return sac(Objets, c); // sac glouton par densités décroissantes
+  static boolean[] sacGloutonParDensites(Objet[] objets, int c) {
+    qspdd(objets); // tri quicksort des objets par densités décroissantes
+    return sac(objets, c); // sac glouton par densités décroissantes
   }
 
-  static void qspvd(objet[] Objets) {
+  static void qspvd(Objet[] objets) {
     // quickSort des objets par valeurs décroissantes
-    qspvd(Objets, 0, Objets.length);
+    qspvd(objets, 0, objets.length);
   }
 
-  static void qspdd(objet[] Objets) {
+  static void qspdd(Objet[] objets) {
     // quickSort des objets par densités décroissantes
-    qspdd(Objets, 0, Objets.length);
+    qspdd(objets, 0, objets.length);
   }
 
-  static void qspvd(objet[] Objets, int i, int j) {
+  static void qspvd(Objet[] objets, int i, int j) {
     // quicksort par valeurs décroissantes de Objets[i:j]
     if (j - i < 2)
       return;
-    int k = spvd(Objets, i, j);
-    qspvd(Objets, i, k);
-    qspvd(Objets, k + 1, j);
+    int k = spvd(objets, i, j);
+    qspvd(objets, i, k);
+    qspvd(objets, k + 1, j);
   }
 
-  static void qspdd(objet[] Objets, int i, int j) {
+  static void qspdd(Objet[] objets, int i, int j) {
     // quicksort par densites décroissantes
     if (j - i < 2)
       return;
-    int k = spdd(Objets, i, j);
-    qspdd(Objets, i, k);
-    qspdd(Objets, k + 1, j);
+    int k = spdd(objets, i, j);
+    qspdd(objets, i, k);
+    qspdd(objets, k + 1, j);
   }
 
-  static int spvd(objet[] Objets, int i, int j) {
+  static int spvd(Objet[] objets, int i, int j) {
     // segmentation de Objets[i:j] par valeurs décroissantes
     // I(k,jp) :
     // valeurs de Objets[i:k] >= valeurs de Objets[k] > valeurs de Objets[k+1:jp]
     int k = i, jp = k + 1;
     while (jp < j) {
-      if (Objets[jp].v <= Objets[k].v) {
+      if (objets[jp].v <= objets[k].v) {
         jp++;
       } else {
-        permuter(Objets, jp, k + 1);
-        permuter(Objets, k + 1, k);
+        permuter(objets, jp, k + 1);
+        permuter(objets, k + 1, k);
         k++;
         jp++;
       }
@@ -252,17 +262,17 @@ public class Projet {
     return k;
   }
 
-  static int spdd(objet[] Objets, int i, int j) {
+  static int spdd(Objet[] objets, int i, int j) {
     // segmentation de Objets[i:j] par densités décroissantes
     // I(k,jp) : densités de Objets[i:k] >= densités de Objets[k:k+1] > densités de
     // Objets[k+1:jp]
     int k = i, jp = k + 1;
     while (jp < j) {
-      if (Objets[jp].d <= Objets[k].d) {
+      if (objets[jp].d <= objets[k].d) {
         jp++;
       } else {
-        permuter(Objets, jp, k + 1);
-        permuter(Objets, k + 1, k);
+        permuter(objets, jp, k + 1);
+        permuter(objets, k + 1, k);
         k++;
         jp++;
       }
@@ -270,10 +280,10 @@ public class Projet {
     return k;
   }
 
-  static void permuter(objet[] Objets, int i, int j) {
-    objet x = Objets[i];
-    Objets[i] = Objets[j];
-    Objets[j] = x;
+  static void permuter(Objet[] objets, int i, int j) {
+    Objet x = objets[i];
+    objets[i] = objets[j];
+    objets[j] = x;
   }
 
   static void EcrireDansFichier(int[] V, String fileName) {
@@ -320,11 +330,11 @@ public class Projet {
     System.out.println();
   }
 
-  static void afficher(objet[] T) {
+  static void afficher(Objet[] T) {
     int n = T.length;
     afficher("i-v-t-d : ");
     for (int i = 0; i < n; i++) {
-      objet o = T[i];
+      Objet o = T[i];
       System.out.printf("%d-%d-%d-%f | ", o.i, o.v, o.t, o.d);
     }
     System.out.println();
