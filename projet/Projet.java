@@ -125,8 +125,8 @@ public class Projet {
       if (T[jp] > T[k]) {
         jp++;
       } else {
-        permuter(T, jp, k + 1);
         permuter(T, k + 1, k);
+        permuter(T, jp, k + 1);
         k++;
         jp++;
       }
