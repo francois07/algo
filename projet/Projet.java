@@ -61,7 +61,7 @@ public class Projet {
   // Exercice 1 : CALCUL DE LA MEDIANE
   static int qselRecursif(int p, int[] T, int i, int j) {
     int m = j - i;
-    if (m == 1) { // Si m =1, p est nécéssairement égal à 0. La p-ème valeur de T[i:j] est T[i]
+    if (m == 1) { // Si m = 1, p est nécéssairement égal à 0. La p-ème valeur de T[i:j] est T[i]
       return T[i];
     } else { // Si m > 1, p est nécéssairement dans l'intervalle [0:m]
       int k = segmenter(T, i, j); // On cherche une partition de T[i:j] pour comparer p+i à son résultat
@@ -118,15 +118,13 @@ public class Projet {
   static int segmenter(int[] T, int i, int j) {
     // Calcule une permutation des valeurs de T[i:j] qui vérifie
     // I(k, i, j): T[i:k] <= T[k:k+1] <= T[k+1:j], et retourne l'indice k
-    int h = hasard(i, j);
-    permuter(T, i, h);
     int k = i, jp = k + 1;
     while (jp < j) {
       if (T[jp] > T[k]) {
         jp++;
       } else {
-        permuter(T, k + 1, k);
         permuter(T, jp, k + 1);
+        permuter(T, k + 1, k);
         k++;
         jp++;
       }
@@ -175,7 +173,6 @@ public class Projet {
 
   static int valeurDuSac(boolean[] sac, Objet[] objets) {
     int vds = 0; // valeur du sac
-
     // Pour chaque objet dans le tableau objets, si ce dernier rentre dans le sac,
     // c'est-à-dire que la valeur de sac à son indice initial est TRUE, alors on
     // ajoute sa valeur à la valeur du sac
