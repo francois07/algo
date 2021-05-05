@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.Math;
 
 class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 	public static void main(String[] args) {
@@ -24,6 +23,8 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		System.out.println("M = " + Arrays.toString(M));
 		System.out.println("A = " + Arrays.toString(A));
 		System.out.printf("Coût d'un chemin de coût minimum jusqu'en %d : %d\n", n - 1, M[n - 1]);
+		descriptionGraphViz(g, "g.graphviz");
+		System.out.println(Arrays.toString(A));
 		acm(A, g, n - 1); // affichage d'un chemin coût minimum de 0 à n-1
 		System.out.println();
 
@@ -35,7 +36,6 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 			} else
 				System.out.printf("Il n'y a pas de chemin de 0 à %d\n", j);
 		}
-		descriptionGraphViz(g, "g.graphviz");
 		System.out.println("Description du graphe dans le fichier g.graphviz");
 		System.out.printf("Coût par minimisation locale = %d\n", coutParMinimisationLocale(g));
 
@@ -57,11 +57,31 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		 */
 		int n = g.length;
 		int[] M = new int[n];
+		int[] A = new int[n];
 
-		for (int i = 0; i < n; i++) {
-			for (LA A = g[i]; !vide(A); A = A.reste()) {
-				int j = A.sommet();
-				M[j] = Math.min(M[i] + A.cout(), M[j]);
+		/*
+		 * Initialisation des valeurs de M et A. Init : M[i] = inf, A[i] = i
+		 */
+		for (int i = 1; i < n; i++) {
+			M[i] = Integer.MAX_VALUE / 2;
+			A[i] = i;
+		}
+
+		/*
+		 * Calcul des valeurs de M et A. m(j) = min_{v \in pred(j)}(m(i)+c(v,j), m(j))
+		 * tel que pred(j) est l'ensemble des sommets connectés au sommet j et c(v,j) le
+		 * cout de l'arc connectant le sommet v au sommet j. On procède par relachement
+		 * d'un contrainte sur l'ensemble des prédécésseurs du sommet j, une technique
+		 * abordée lors des premiers TDs de programmation dynamique.
+		 */
+		for (int i = 1; i < n; i++) {
+			for (LA la = g[i - 1]; !vide(la); la = la.reste()) {
+				int j = la.sommet(), c = la.cout();
+				int m = M[i - 1] + c;
+				if (m < M[j]) {
+					M[j] = m;
+					A[j] = i - 1;
+				}
 			}
 		}
 
@@ -69,12 +89,15 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 	}
 
 	static LA[] symetrique(LA[] g) {
-		int n = g.length;
 		// retourne le graphe g', symétrique du graphe g.
+		int n = g.length;
 		LA[] gp = new LA[n];
+
+		// Parcours de tous les arcs du graphe g
 		for (int i = 0; i < n; i++) {
 			for (LA A = g[i]; !vide(A); A = A.reste()) {
 				int j = A.sommet();
+				// i : (j, cij) -> j : (i, cij)
 				gp[j] = new LA(i, A.cout(), gp[j]);
 			}
 		}
@@ -84,25 +107,56 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 	static void acm(int[] A, LA[] g, int j) {
 		// affiche un chemin de coût minimum du sommet 0 au sommet j
 
-		// ...
-
+		/*
+		 * Fonction fortement inspiré de celle du TD6. Le tableau A nous permet de
+		 * retrouver le chemin optimal j -> j-1 -> ... -> 0. Or, on souhait afficher ce
+		 * chemin de 0 jusqu'à j, càd dans le sens inverse. On a alors recours a une
+		 * recursion.
+		 */
+		if (j == 0) {
+			System.out.print("0");
+			return;
+		}
+		int aj = A[j];
+		acm(A, g, aj);
+		System.out.printf("--(%d)-->%d", coutArc(aj, j, g), j);
 	}
 
 	static int coutArc(int i, int j, LA[] g) {
 		/* retourne le coût de l'arc i -> j */
 
-		return g[i]
-
+		/*
+		 * On parcours simplement la liste d'arcs g[i] jusqu'à trouver un arc dirigé
+		 * vers le sommet j. Si il n'en existe pas, on retourne -1.
+		 */
+		int c = -1;
+		for (LA A = g[i]; !vide(A); A = A.reste()) {
+			if (A.sommet() == j)
+				c = A.cout();
+		}
+		return c;
 	}
 
 	/* minimisation locale */
 	static int coutParMinimisationLocale(LA[] g) {
-		int n = g.length;
 		// calcul du coût d'un chemin de coût local minimum. Retourne le coût d'un
 		// chemin obtenu par minimisation locale.
 
-		// ...
-
+		/*
+		 * On souhaite parcourir le chemin de coût local minimum. Pour cela, on part de
+		 * g[0] puis on détermine son sommet connecté de cout minimum avec la fonction
+		 * coutMin_et_argCoutMin(). On ajoute alors le cout retourné au cout final. On
+		 * répete ce procédé sur g[jstar], tel quel jstar est l'argument retourné par la
+		 * fonction précédente.
+		 */
+		int c = 0;
+		LA las = g[0];
+		while (!vide(las)) {
+			int[] min = coutMin_et_argCoutMin(las);
+			c += min[0];
+			las = g[min[1]];
+		}
+		return c;
 	}
 
 	static int[] coutMin_et_argCoutMin(LA las) { // las : liste d'arcs sortant d'un sommet i
@@ -111,7 +165,21 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		 * retourne c(i,j*) et j*.
 		 */
 
-		// ...
+		/*
+		 * On cherche l'arc de cout minimum de la liste d'arcs las. La structure de
+		 * notre calcul sera très similaire au calcul linéaire du minimum d'un tableau.
+		 * Seulement, on n'itère pas sur un tableau mais sur la liste d'arcs las et pour
+		 * accèder aux valeurs à comparer, on utilise la méthode cout() de LA.
+		 */
+		int cijstar = las.cout();
+		int jstar = las.sommet();
+		for (LA la = las; !vide(la); la = la.reste()) {
+			int c = la.cout();
+			if (c < cijstar) {
+				cijstar = c;
+				jstar = la.sommet();
+			}
+		}
 
 		return new int[] { cijstar, jstar };
 	}
@@ -162,24 +230,25 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		return l == null;
 	}
 
-	static LA[] grapheAleatoire(int n) { /*
-																				 * Retourne un graphe aléatoire. Chaque sommet i de [0:n-1] envoie un nombre
-																				 * d'arcs quelconque, supérieur ou égal à 1, vers les sommets de numéros plus
-																				 * élevés, donc vers les sommets de [i+1:n]. Le sommet n-1 n'envoie aucun arc.
-																				 * Ce nombre d'arcs est le degré sortant du sommet i, noté ds(i). Le sommet i
-																				 * envoie au moins un arc vers un sommet de [i+1:n] et au plus un arc vers
-																				 * chacun d'eux. Son degré sortant, ds(i), est ≤ à n - (i+1), situation où le
-																				 * sommet i envoie un arc vers chacun des sommets de numéros supérieurs. On
-																				 * rappelle par ailleurs que le sommet i envoie au moins un arc. Donc : 1 ≤
-																				 * ds(i) ≤ n-(i+1), autrement dit 1 ≤ ds(i) < n-i. Le coût de l'arc i -> j est
-																				 * aléatoire : nous choisissons la fonction de coût c(i,j) = (j - i) + hasard(0,
-																				 * n+1), où hasard(0,n) est un entier au hasard dans l'intervalle [0:n]. Elle
-																				 * "pénalise" en moyenne les arcs reliant des sommets de numéros très distants.
-																				 * Exemples avec un graphe à n=20 sommets : s'il existe un arc 0 -> j=n-1, sa
-																				 * valeur sera (j-i) + hasard(0,n) = n-1 + hasard(0,n) = 19 + hasard(0,20), donc
-																				 * en moyenne 19 + 10 = 29. S'il existe un arc 0 -> 3, sa valeur sera (3-0) +
-																				 * hasard(0,20), donc en moyenne 3 + 10 = 13.
-																				 */
+	static LA[] grapheAleatoire(int n) {
+		/*
+		 * Retourne un graphe aléatoire. Chaque sommet i de [0:n-1] envoie un nombre
+		 * d'arcs quelconque, supérieur ou égal à 1, vers les sommets de numéros plus
+		 * élevés, donc vers les sommets de [i+1:n]. Le sommet n-1 n'envoie aucun arc.
+		 * Ce nombre d'arcs est le degré sortant du sommet i, noté ds(i). Le sommet i
+		 * envoie au moins un arc vers un sommet de [i+1:n] et au plus un arc vers
+		 * chacun d'eux. Son degré sortant, ds(i), est ≤ à n - (i+1), situation où le
+		 * sommet i envoie un arc vers chacun des sommets de numéros supérieurs. On
+		 * rappelle par ailleurs que le sommet i envoie au moins un arc. Donc : 1 ≤
+		 * ds(i) ≤ n-(i+1), autrement dit 1 ≤ ds(i) < n-i. Le coût de l'arc i -> j est
+		 * aléatoire : nous choisissons la fonction de coût c(i,j) = (j - i) + hasard(0,
+		 * n+1), où hasard(0,n) est un entier au hasard dans l'intervalle [0:n]. Elle
+		 * "pénalise" en moyenne les arcs reliant des sommets de numéros très distants.
+		 * Exemples avec un graphe à n=20 sommets : s'il existe un arc 0 -> j=n-1, sa
+		 * valeur sera (j-i) + hasard(0,n) = n-1 + hasard(0,n) = 19 + hasard(0,20), donc
+		 * en moyenne 19 + 10 = 29. S'il existe un arc 0 -> 3, sa valeur sera (3-0) +
+		 * hasard(0,20), donc en moyenne 3 + 10 = 13.
+		 */
 		LA[] g = new LA[n];
 		for (int i = 0; i < n - 1; i++) {
 			int[] S = permutation(i + 1, n); // S est une permutation de [i+1:n]
