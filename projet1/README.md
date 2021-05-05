@@ -2,6 +2,12 @@
 # Projet 1 d'algorithmique
 
 <!-- omit in toc -->
+## Auteurs
+
+- Jocelyn Caron
+- François Soulié
+
+<!-- omit in toc -->
 ## Table des matières
 
 - [Exercice 1](#exercice-1)
