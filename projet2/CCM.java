@@ -5,6 +5,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+/**
+ * Projet 2 d'algorithmique dans le cadre de l'unité de l'ESIEE Paris du même
+ * nom
+ * 
+ * @author Jocelyn Caron
+ * @author François Soulié
+ */
+
 class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 	public static void main(String[] args) {
 		if (args.length != 2) {
