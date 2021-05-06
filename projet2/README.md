@@ -30,8 +30,8 @@
 
 $$
 m(j) =
-  min_{v\in P(j)}( m(v) + c(v,j) ),\space
-  P(j) \space\text{l'ensemble des sommets connectés à j}
+  min_{v\in pred(j)}( m(v) + c(v,j) ),\space
+  pred(j) \space\text{l'ensemble des sommets connectés à j}
 $$
 
 On procède par relachement d'un contrainte sur l'ensemble des prédécésseurs du sommet `j`, une technique abordée lors des premiers TDs de programmation dynamique.
