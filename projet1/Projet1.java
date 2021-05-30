@@ -8,9 +8,6 @@ import java.util.Random;
 /**
  * Projet 1 d'algorithmique dans le cadre de l'unité de l'ESIEE Paris du même
  * nom
- * 
- * @author Jocelyn Caron
- * @author François Soulié
  */
 
 public class Projet1 {

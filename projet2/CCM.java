@@ -8,9 +8,6 @@ import java.io.PrintWriter;
 /**
  * Projet 2 d'algorithmique dans le cadre de l'unité de l'ESIEE Paris du même
  * nom
- * 
- * @author Jocelyn Caron
- * @author François Soulié
  */
 
 class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
@@ -68,7 +65,9 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		int[] A = new int[n];
 
 		/*
-		 * Initialisation des valeurs de M et A. Init : M[i] = inf, A[i] = i
+		 * Initialisation des valeurs de M et A.
+		 * 
+		 * Init : M[i] = inf, A[i] = i
 		 */
 		for (int i = 1; i < n; i++) {
 			M[i] = Integer.MAX_VALUE / 2;
@@ -78,17 +77,31 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		/*
 		 * Calcul des valeurs de M et A. m(j) = min_{v \in pred(j)}(m(i)+c(v,j), m(j))
 		 * tel que pred(j) est l'ensemble des sommets connectés au sommet j et c(v,j) le
-		 * cout de l'arc connectant le sommet v au sommet j. On procède par relachement
-		 * d'un contrainte sur l'ensemble des prédécésseurs du sommet j, une technique
-		 * abordée lors des premiers TDs de programmation dynamique.
+		 * cout de l'arc connectant le sommet v au sommet j.
+		 * 
+		 * On procède par relachement d'un contrainte sur l'ensemble des prédécésseurs
+		 * du sommet j, une technique abordée lors des premiers TDs de programmation
+		 * dynamique.
+		 * 
+		 * m(j,k) : Coût minimum d'un chemin allant du sommet 0 au sommet j sous la
+		 * contrainte que les prédécésseurs de j sont dans l'ensemble de sommets [0:k]
+		 * 
+		 * Base : m(0,0) = 0, m(j,0) = +inf
+		 * 
+		 * Pour tout k t.q 1 < k <= n :
+		 * 
+		 * - Si il n'exsite pas d'arc k-1 -> j : m(j,k) = m(j, k-1)
+		 * 
+		 * - Si il existe un arc k-1 -> j : m(j,k) = min{ m(k-1, k-1) + c(k-1, j), m(j,
+		 * k-1) }
 		 */
-		for (int i = 1; i < n; i++) {
-			for (LA la = g[i - 1]; !vide(la); la = la.reste()) {
+		for (int k = 1; k < n; k++) {
+			for (LA la = g[k - 1]; !vide(la); la = la.reste()) {
 				int j = la.sommet(), c = la.cout();
-				int m = M[i - 1] + c;
+				int m = M[k - 1] + c;
 				if (m < M[j]) {
 					M[j] = m;
-					A[j] = i - 1;
+					A[j] = k - 1;
 				}
 			}
 		}
@@ -105,10 +118,12 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		for (int i = 0; i < n; i++) {
 			for (LA A = g[i]; !vide(A); A = A.reste()) {
 				int j = A.sommet();
-				// i : (j, cij) -> j : (i, cij)
+				// i : (j, cij) -> j : (i, cij) dans gp. Si il existe dejà un arc à l'indice j,
+				// on le met en reste.
 				gp[j] = new LA(i, A.cout(), gp[j]);
 			}
 		}
+
 		return gp;
 	}
 
@@ -117,7 +132,7 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 
 		/*
 		 * Fonction fortement inspiré de celle du TD6. Le tableau A nous permet de
-		 * retrouver le chemin optimal j -> j-1 -> ... -> 0. Or, on souhait afficher ce
+		 * retrouver le chemin optimal j -> j-1 -> ... -> 0. Or, on souhaite afficher ce
 		 * chemin de 0 jusqu'à j, càd dans le sens inverse. On a alors recours a une
 		 * recursion.
 		 */
@@ -138,10 +153,12 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		 * vers le sommet j. Si il n'en existe pas, on retourne -1.
 		 */
 		int c = -1;
+
 		for (LA A = g[i]; !vide(A); A = A.reste()) {
 			if (A.sommet() == j)
 				c = A.cout();
 		}
+
 		return c;
 	}
 
@@ -153,17 +170,21 @@ class CCM { // chemin de coût minimum (dans un graphe sans "circuit".)
 		/*
 		 * On souhaite parcourir le chemin de coût local minimum. Pour cela, on part de
 		 * g[0] puis on détermine son sommet connecté de cout minimum avec la fonction
-		 * coutMin_et_argCoutMin(). On ajoute alors le cout retourné au cout final. On
-		 * répete ce procédé sur g[jstar], tel quel jstar est l'argument retourné par la
-		 * fonction précédente.
+		 * coutMin_et_argCoutMin() qui retourne en indice 0 le cout minimum et en indice
+		 * 1 l'argument (le sommet) correspondant.
+		 * 
+		 * On ajoute alors le cout retourné au cout final. On répete ce procédé sur
+		 * g[jstar], tel quel jstar est l'argument retourné par la fonction précédente.
 		 */
 		int c = 0;
 		LA las = g[0];
+
 		while (!vide(las)) {
-			int[] min = coutMin_et_argCoutMin(las);
-			c += min[0];
-			las = g[min[1]];
+			int[] coutMin_argCoutMin = coutMin_et_argCoutMin(las);
+			c += coutMin_argCoutMin[0];
+			las = g[coutMin_argCoutMin[1]];
 		}
+
 		return c;
 	}
 

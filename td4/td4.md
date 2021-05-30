@@ -82,10 +82,10 @@ Quelle quantité de stock a-t-ton livré au `n`-ème entrepôt?
 
 ```
 m(n,S) = Max{
-    g(n-1,0) + m(n-1,S-0)
-    g(n-1,1) + m(n-1,S-1)
-    g(n-1,2) + m(n-1,S-2)
-    ...
+    g(n-1,0) + m(n-1,S-0),
+    g(n-1,1) + m(n-1,S-1),
+    g(n-1,2) + m(n-1,S-2),
+    ...,
     g(n-1,S) + m(n-1,0)
 }
 ```
